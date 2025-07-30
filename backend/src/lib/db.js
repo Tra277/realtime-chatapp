@@ -1,13 +1,11 @@
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
 export const connectDB = async () => {
   try {
-    const client = await MongoClient.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    await mongoose.connect(process.env.MONGODB_URI, {
+      connectTimeoutMS: 30000, // Increase timeout to 30 seconds
     });
     console.log("MongoDB connected successfully");
-    return client.db();
   } catch (error) {
     console.error("MongoDB connection failed:", error);
     throw error;
