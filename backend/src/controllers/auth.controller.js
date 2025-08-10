@@ -2,6 +2,7 @@ import e from "express";
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs';
 import { generateJwtToken } from "../lib/utils.js";
+import cloudinary from "../lib/cloudinary.js";
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -66,4 +67,28 @@ export const logout = (req, res) => {
   res.cookie('jwt', '', { maxAge: 0 });
   return res.status(200).json({ message: 'Logged out successfully' });
   // Handle user logout
+}
+
+export const updateProfile = async (req, res) => {
+  const { profilePic } = req.body;
+  const user = req.user;
+  const userId = user._id;
+  if(!profilePic) {
+    return res.status(400).json({ message: 'Profile picture is required' });
+  }
+  const uploadResponse = await cloudinary.uploader.upload(profilePic, {
+    public_id: `profile-pic-${userId}`,
+    width: 150,
+  });
+  const profilePicUrl = uploadResponse.secure_url;
+  const updatedUser = await User.findByIdAndUpdate(userId, { profilePic: profilePicUrl }, { new: true });
+  return res.status(200).json({ message: 'Profile updated successfully' });
+}
+
+export const checkAuth = async (req, res) => {
+  try {
+    return res.status(200).json( req.user );
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 }
